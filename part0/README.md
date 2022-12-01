@@ -9,7 +9,7 @@ Resources for making diagrams
 
 Create a similar diagram depicting the situation where the user creates a new note on page https://studies.cs.helsinki.fi/exampleapp/notes when writing something into the text field and clicking the submit button.
 
-```Mermaid
+```mermaid
 sequenceDiagram
     Note over browser: User submits a note
     browser->>server: HTTP POST https://.../new_note {note: "hello"}
@@ -30,7 +30,7 @@ sequenceDiagram
 
 Create a diagram depicting the situation where the user goes to the single page app version of the notes app at https://studies.cs.helsinki.fi/exampleapp/spa.
 
-```Mermaid
+```mermaid
 sequenceDiagram
     browser->>server: HTTP GET  https://studies.cs.helsinki.fi/exampleapp/spa
     server-->>browser: HTML-code
@@ -48,7 +48,7 @@ sequenceDiagram
 
 Create a diagram depicting the situation where the user creates a new note using the single page version of the app.
 
-```Mermaid
+```mermaid
 sequenceDiagram
     Note over browser: User submits a note on spa
     Note over browser: Note render on page via JS, which then sends the note to the server
