@@ -2,26 +2,43 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Languages from './components/Languages';
 
+const CountryDetails = ({ result }) => {
+	return (
+		<>
+			<h2>{result.name.common}</h2>
+			<div>capital {result.capital}</div>
+			<div>area {result.area}</div>
+			<Languages langs={result.languages} />
+			<img src={result.flags.png} alt="flag" />
+		</>
+	);
+};
+
+const IntermResults = ({ countries }) => {
+	return countries.map((country, i) => (
+		<div key={i}>
+			{country.name.common}
+			<button
+				key={i}
+				onClick={() => {
+					console.log('clicked');
+				}}
+			>
+				show
+			</button>
+		</div>
+	));
+};
+
 const CountryResults = ({ countries }) => {
 	if (countries.length > 10) {
 		return <div>Too many matches, specify another filter</div>;
 	} else if (countries.length > 1) {
-		return countries.map(country => (
-			<div key={country.name.common}>{country.name.common}</div>
-		));
+		return <IntermResults countries={countries} />;
 	} else if (countries.length === 1) {
 		const result = countries[0];
 		console.log(result);
-		return (
-			<>
-				{' '}
-				<h2>{result.name.common}</h2>
-				<div>capital {result.capital}</div>
-				<div>area {result.area}</div>
-				<Languages langs={result.languages} />
-				<img src={result.flags.png} alt="flag" />
-			</>
-		);
+		return <CountryDetails result={result} />;
 	} else {
 		return <div>Oops, try a different search</div>;
 	}
@@ -59,7 +76,6 @@ const App = () => {
 	return (
 		<div>
 			<Filter filter={filter} handleFilter={handleFilter} />
-
 			<CountryResults countries={countriesToShow} />
 		</div>
 	);
