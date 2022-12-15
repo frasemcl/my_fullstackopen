@@ -32,7 +32,6 @@ const CountryResults = ({
 		}
 	} else if (countries.length === 1) {
 		const result = countries[0];
-		console.log(result);
 		// setShowClicked(false);
 		return <CountryDetails result={result} />;
 	} else {

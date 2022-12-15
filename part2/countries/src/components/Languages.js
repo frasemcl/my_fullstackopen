@@ -5,7 +5,7 @@ const Languages = ({ langs }) => {
 
 	return (
 		<>
-			<h3>Languages</h3>
+			<h4>Languages</h4>
 			<ul>{langList}</ul>
 		</>
 	);
