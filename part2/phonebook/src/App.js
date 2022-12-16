@@ -1,43 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import Person from './components/Person';
+import PersonForm from './components/PersonForm';
+import Filter from './components/Filter';
 
-const Person = ({ people }) => {
-	return people.map((person, i) => (
-		<div key={person.id}>
-			{person.name} {person.number}
-		</div>
-	));
-};
-
-const PersonForm = ({
-	addName,
-	handleNameChange,
-	handleNumberChange,
-	newName,
-	newNumber,
-}) => {
-	return (
-		<form onSubmit={addName}>
-			<div>
-				name: <input value={newName} onChange={handleNameChange} />
-			</div>
-			<div>
-				number: <input value={newNumber} onChange={handleNumberChange} />
-			</div>
-			<div>
-				<button type="submit">add</button>
-			</div>
-		</form>
-	);
-};
-
-const Filter = ({ filter, handleFilter }) => {
-	return (
-		<div>
-			filter shown with: <input value={filter} onChange={handleFilter} />
-		</div>
-	);
-};
+import personService from './services/persons';
 
 const App = () => {
 	const [persons, setPersons] = useState([]);
@@ -46,8 +12,8 @@ const App = () => {
 	const [filter, setFilter] = useState('');
 
 	useEffect(() => {
-		axios.get('http://localhost:3001/persons').then(response => {
-			setPersons(response.data);
+		personService.getAll().then(initialPeople => {
+			setPersons(initialPeople);
 		});
 	}, []);
 
@@ -55,24 +21,38 @@ const App = () => {
 		event.preventDefault();
 
 		const found = persons.find(person => person.name === newName);
+		console.log(found);
+		const personObject = {
+			name: newName,
+			number: newNumber,
+			// id: persons.length + 1,
+		};
 		if (!found) {
-			const personObject = {
-				name: newName,
-				number: newNumber,
-				id:
-					persons.reduce(
-						(acc, person) => (person.id > acc ? person.id : acc),
-						0
-					) + 1, //find the highest person id then add 1
-			};
-
-			setPersons(persons.concat(personObject));
-			setNewName('');
-			setNewNumber('');
+			personService.create(personObject).then(returnedPerson => {
+				setPersons(persons.concat(returnedPerson));
+				setNewName('');
+				setNewNumber('');
+			});
 		} else {
-			alert(`${newName} is already added to the phonebook`);
-			setNewName('');
-			setNewNumber('');
+			if (
+				window.confirm(
+					`${newName} is already in the phonebook, replace the old number with the new one?`
+				)
+			) {
+				console.log('updating phonebook');
+				personService.update(found.id, personObject).then(returnedPerson => {
+					setPersons(
+						persons.map(person =>
+							person.id !== returnedPerson.id ? person : returnedPerson
+						)
+					);
+					setNewName('');
+					setNewNumber('');
+				});
+			} else {
+				setNewName('');
+				setNewNumber('');
+			}
 		}
 	};
 
@@ -84,6 +64,16 @@ const App = () => {
 	};
 	const handleNumberChange = event => {
 		setNewNumber(event.target.value);
+	};
+
+	const handleDeleteClick = event => {
+		window.confirm('Are you sure you want to delete this contact?')
+			? personService.delet(event.target.id).then(() => {
+					personService.getAll().then(initialPeople => {
+						setPersons(initialPeople);
+					});
+			  })
+			: console.log('delete bypassed by user');
 	};
 
 	const peopleToShow =
@@ -106,7 +96,7 @@ const App = () => {
 				newNumber={newNumber}
 			/>
 			<h2>Numbers</h2>
-			<Person people={peopleToShow} />
+			<Person people={peopleToShow} handleDeleteClick={handleDeleteClick} />
 		</div>
 	);
 };
