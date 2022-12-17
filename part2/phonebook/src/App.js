@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Person from './components/Person';
 import PersonForm from './components/PersonForm';
 import Filter from './components/Filter';
+import Notification from './components/Notification';
 
 import personService from './services/persons';
 
@@ -10,6 +11,8 @@ const App = () => {
 	const [newName, setNewName] = useState('');
 	const [newNumber, setNewNumber] = useState('');
 	const [filter, setFilter] = useState('');
+	const [message, setMessage] = useState(null);
+	const [messageType, setMessageType] = useState(null);
 
 	useEffect(() => {
 		personService.getAll().then(initialPeople => {
@@ -21,7 +24,6 @@ const App = () => {
 		event.preventDefault();
 
 		const found = persons.find(person => person.name === newName);
-		console.log(found);
 		const personObject = {
 			name: newName,
 			number: newNumber,
@@ -30,6 +32,11 @@ const App = () => {
 		if (!found) {
 			personService.create(personObject).then(returnedPerson => {
 				setPersons(persons.concat(returnedPerson));
+				setMessageType('success');
+				setMessage(`'${newName}' was added to the phonebook`);
+				setTimeout(() => {
+					setMessage(null);
+				}, 3000);
 				setNewName('');
 				setNewNumber('');
 			});
@@ -39,16 +46,34 @@ const App = () => {
 					`${newName} is already in the phonebook, replace the old number with the new one?`
 				)
 			) {
-				console.log('updating phonebook');
-				personService.update(found.id, personObject).then(returnedPerson => {
-					setPersons(
-						persons.map(person =>
-							person.id !== returnedPerson.id ? person : returnedPerson
-						)
-					);
-					setNewName('');
-					setNewNumber('');
-				});
+				console.log(`'${newName}' was added to the phonebook`);
+				personService
+					.update(found.id, personObject)
+					.then(returnedPerson => {
+						setPersons(
+							persons.map(person =>
+								person.id !== returnedPerson.id ? person : returnedPerson
+							)
+						);
+
+						setNewName('');
+						setNewNumber('');
+					})
+					.catch(err => {
+						// TODO: some serious refactoring in this big addName method
+						if (err.code === 'ERR_BAD_REQUEST') {
+							setMessageType('error');
+							setMessage(`'${newName}' has been deleted from the server`);
+							setTimeout(() => {
+								setMessage(null);
+							}, 3000);
+							personService.getAll().then(initialPeople => {
+								setPersons(initialPeople);
+							});
+							setNewName('');
+							setNewNumber('');
+						}
+					});
 			} else {
 				setNewName('');
 				setNewNumber('');
@@ -86,6 +111,7 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
+			<Notification message={message} type={messageType} />
 			<Filter filter={filter} handleFilter={handleFilter} />
 			<h2>add a new</h2>
 			<PersonForm
