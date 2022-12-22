@@ -15,9 +15,14 @@ const App = () => {
 	const [messageType, setMessageType] = useState(null);
 
 	useEffect(() => {
-		personService.getAll().then(initialPeople => {
-			setPersons(initialPeople);
-		});
+		personService
+			.getAll()
+			.then(initialPeople => {
+				setPersons(initialPeople);
+			})
+			.catch(error => {
+				console.log(error);
+			});
 	}, []);
 
 	const addName = event => {
@@ -30,16 +35,28 @@ const App = () => {
 			// id: persons.length + 1,
 		};
 		if (!found) {
-			personService.create(personObject).then(returnedPerson => {
-				setPersons(persons.concat(returnedPerson));
-				setMessageType('success');
-				setMessage(`'${newName}' was added to the phonebook`);
-				setTimeout(() => {
-					setMessage(null);
-				}, 3000);
-				setNewName('');
-				setNewNumber('');
-			});
+			personService
+				.create(personObject)
+				.then(returnedPerson => {
+					setPersons(persons.concat(returnedPerson));
+					setMessageType('success');
+					setMessage(`'${newName}' was added to the phonebook`);
+					setTimeout(() => {
+						setMessage(null);
+					}, 3000);
+					setNewName('');
+					setNewNumber('');
+				})
+				.catch(error => {
+					console.log();
+					setMessageType('error');
+					setMessage(error.response.data.error);
+					setTimeout(() => {
+						setMessage(null);
+					}, 3000);
+					setNewName('');
+					setNewNumber('');
+				});
 		} else {
 			if (
 				window.confirm(
@@ -63,7 +80,7 @@ const App = () => {
 						// TODO: some serious refactoring in this big addName method
 						if (err.code === 'ERR_BAD_REQUEST') {
 							setMessageType('error');
-							setMessage(`'${newName}' has been deleted from the server`);
+							setMessage(err.response.data.error);
 							setTimeout(() => {
 								setMessage(null);
 							}, 3000);
